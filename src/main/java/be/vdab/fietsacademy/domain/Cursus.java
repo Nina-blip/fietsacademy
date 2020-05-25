@@ -5,7 +5,7 @@ import java.util.UUID;
 
 @Entity
 @Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
-public class Cursus {
+public abstract class Cursus {
     @Id
     private String id;
     private String naam;
