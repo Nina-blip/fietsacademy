@@ -46,7 +46,8 @@ class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTe
     @BeforeEach
     void beforeEach() {
         campus = new Campus("test", new Adres("test", "test", "test", "test"));
-        docent = new Docent("test", "test", BigDecimal.TEN, "test@test.be", Geslacht.MAN, campus);
+        docent = new Docent("test", "test", BigDecimal.TEN, "test@test.be", Geslacht.MAN /*, campus*/);
+        campus.add(docent);
     }
 
     @Test
@@ -73,9 +74,11 @@ class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTe
     void create() {
         manager.persist(campus);
         repository.create(docent);
+        manager.flush();
         assertThat(docent.getId()).isPositive();
         assertThat(super.countRowsInTableWhere(DOCENTEN, "id=" + docent.getId())).isOne();
         assertThat(super.jdbcTemplate.queryForObject("select campusid from docenten where id=?", Long.class, docent.getId())).isEqualTo(campus.getId());
+        assertThat(campus.getDocenten().contains(docent)).isTrue();
     }
 
     @Test
@@ -149,9 +152,9 @@ class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTe
         assertThat(super.jdbcTemplate.queryForObject("select bijnaam from docentenbijnamen where docentid=?", String.class, docent.getId())).isEqualTo("test");
     }
 
-    @Test
+    /*@Test
     void campusLazyLoaded(){
         Docent docent = repository.findById(idVanTestMan()).get();
         assertThat(docent.getCampus().getNaam()).isEqualTo("test");
-    }
+    }*/
 }
