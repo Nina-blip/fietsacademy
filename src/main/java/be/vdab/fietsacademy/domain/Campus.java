@@ -22,8 +22,7 @@ public class Campus {
     @OrderBy("fax")
     private Set<TelefoonNr> telefoonNrs;
 
-    @OneToMany
-    @JoinColumn(name = "campusid")
+    @OneToMany(mappedBy = "campus")
     @OrderBy("voornaam, familienaam")
     private Set<Docent> docenten;
 
@@ -58,10 +57,15 @@ public class Campus {
     }
 
     public boolean add(Docent docent){
-        if (docent == null){
-            throw new NullPointerException();
+        boolean toegevoegd = docenten.add(docent);
+        Campus oudeCampus = docent.getCampus();
+        if (oudeCampus != null && oudeCampus != this){
+            oudeCampus.docenten.remove(docent);
         }
-        return docenten.add(docent);
+        if (this != oudeCampus){
+            docent.setCampus(this);
+        }
+        return toegevoegd;
     }
 
     @Override

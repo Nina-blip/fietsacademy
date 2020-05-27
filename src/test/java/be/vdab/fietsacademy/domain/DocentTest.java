@@ -15,13 +15,15 @@ class DocentTest {
     private Campus campus1;
     private Docent docent2;
     private Docent nogEensDocent1;
+    private Campus campus2;
 
     @BeforeEach
     void beforeEach() {
         campus1 = new Campus("test", new Adres("test", "test", "test", "test"));
-        docent1 = new Docent("test", "test", WEDDE, "test@test.be", Geslacht.MAN/*, campus1*/);
-        docent2 = new Docent("test2", "test2", WEDDE, "test2@test.be", Geslacht.MAN);
-        nogEensDocent1 = new Docent("test", "test", WEDDE, "test@test.be", Geslacht.MAN/*, campus1*/);
+        docent1 = new Docent("test", "test", WEDDE, "test@test.be", Geslacht.MAN, campus1);
+        docent2 = new Docent("test2", "test2", WEDDE, "test2@test.be", Geslacht.MAN, campus1);
+        nogEensDocent1 = new Docent("test", "test", WEDDE, "test@test.be", Geslacht.MAN, campus1);
+        campus2 = new Campus("test2", new Adres("test2", "test2", "test2", "test2"));
     }
 
     @Test
@@ -94,32 +96,50 @@ class DocentTest {
 
     @Test
     void verschillendeDocentenKunnenTotDezelfdeCampusBehoren() {
-        assertThat(campus1.add(docent1)).isTrue();
-        assertThat(campus1.add(docent2)).isTrue();
+        assertThat(campus1.getDocenten()).containsOnly(docent1, docent2);
     }
 
     @Test
-    void docentenZijnGelijkAlsHunEmailadresssenGelijkZijn(){
+    void docentenZijnGelijkAlsHunEmailadresssenGelijkZijn() {
         assertThat(docent1).isEqualTo(nogEensDocent1);
     }
 
     @Test
-    void docentenZijnVerschillendAlsHunEmailAdressenVerschillen(){
+    void docentenZijnVerschillendAlsHunEmailAdressenVerschillen() {
         assertThat(docent1).isNotEqualTo(docent2);
     }
 
     @Test
-    void eenDocentVerschiltVanNull(){
+    void eenDocentVerschiltVanNull() {
         assertThat(docent1).isNotEqualTo(null);
     }
 
     @Test
-    void eenDocentVerschiltVanEenAnderTypeObject(){
+    void eenDocentVerschiltVanEenAnderTypeObject() {
         assertThat(docent1).isNotEqualTo("");
     }
 
     @Test
-    void gelijkeDocentenGevenDezelfdeHashcode(){
+    void gelijkeDocentenGevenDezelfdeHashcode() {
         assertThat(docent1).hasSameHashCodeAs(nogEensDocent1);
+    }
+
+    @Test
+    void docent1KomtVoorInCampus1(){
+        assertThat(docent1.getCampus()).isEqualTo(campus1);
+        assertThat(campus1.getDocenten()).contains(docent1);
+    }
+
+    @Test
+    void docent1VerhuistNaarCampus2(){
+        docent1.setCampus(campus2);
+        assertThat(docent1.getCampus()).isEqualTo(campus2);
+        assertThat(campus1.getDocenten()).containsOnly(docent2);
+        assertThat(campus2.getDocenten()).containsOnly(docent1);
+    }
+
+    @Test
+    void JeKanGeenNullToevoegenAlsCampus(){
+        assertThatNullPointerException().isThrownBy(()->docent1.setCampus(null));
     }
 }
