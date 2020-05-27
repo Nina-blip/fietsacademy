@@ -1,5 +1,7 @@
 package be.vdab.fietsacademy.repositories;
 
+import be.vdab.fietsacademy.domain.Adres;
+import be.vdab.fietsacademy.domain.Campus;
 import be.vdab.fietsacademy.domain.Docent;
 import be.vdab.fietsacademy.domain.Geslacht;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,12 +21,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
 @Import(JpaDocentRepository.class)
+@Sql("/insertCampus.sql")
 @Sql("/insertDocent.sql")
 class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTests {
     private final JpaDocentRepository repository;
     private static final String DOCENTEN = "docenten";
     private Docent docent;
     private final EntityManager manager;
+    private Campus campus;
 
     public JpaDocentRepositoryTest(JpaDocentRepository repository, EntityManager manager) {
         this.repository = repository;
@@ -41,7 +45,8 @@ class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTe
 
     @BeforeEach
     void beforeEach() {
-        docent = new Docent("test", "test", BigDecimal.TEN, "test@test.be", Geslacht.MAN);
+        campus = new Campus("test", new Adres("test", "test", "test", "test"));
+        docent = new Docent("test", "test", BigDecimal.TEN, "test@test.be", Geslacht.MAN, campus);
     }
 
     @Test
@@ -66,9 +71,11 @@ class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTe
 
     @Test
     void create() {
+        manager.persist(campus);
         repository.create(docent);
         assertThat(docent.getId()).isPositive();
         assertThat(super.countRowsInTableWhere(DOCENTEN, "id=" + docent.getId())).isOne();
+        assertThat(super.jdbcTemplate.queryForObject("select campusid from docenten where id=?", Long.class, docent.getId())).isEqualTo(campus.getId());
     }
 
     @Test
@@ -106,13 +113,13 @@ class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTe
     }
 
     @Test
-    void findGrootsteWedde(){
+    void findGrootsteWedde() {
         assertThat(repository.findGrootsteWedde()).isEqualByComparingTo(
                 super.jdbcTemplate.queryForObject("select max(wedde) from docenten", BigDecimal.class));
     }
 
     @Test
-    void findAantalDocentenPerWedde(){
+    void findAantalDocentenPerWedde() {
         BigDecimal duizend = BigDecimal.valueOf(1000);
         assertThat(repository.findAantalDocentenPerWedde()).hasSize(
                 super.jdbcTemplate.queryForObject("select count(distinct wedde) from docenten", Integer.class))
@@ -122,22 +129,29 @@ class JpaDocentRepositoryTest extends AbstractTransactionalJUnit4SpringContextTe
     }
 
     @Test
-    void algemeneOpslag(){
+    void algemeneOpslag() {
         assertThat(repository.algemeneOpslag(BigDecimal.TEN)).isEqualTo(super.countRowsInTable(DOCENTEN));
         assertThat(super.jdbcTemplate.queryForObject("select wedde from docenten where id=?",
                 BigDecimal.class, idVanTestMan())).isEqualByComparingTo("1100");
     }
 
     @Test
-    void eenBijnaamLezen(){
+    void eenBijnaamLezen() {
         assertThat(repository.findById(idVanTestMan()).get().getBijnamen()).containsOnly("test");
     }
 
     @Test
-    void bijnaamToevoegen(){
+    void bijnaamToevoegen() {
+        manager.persist(campus);
         repository.create(docent);
         docent.addBijnaam("test");
         manager.flush();
         assertThat(super.jdbcTemplate.queryForObject("select bijnaam from docentenbijnamen where docentid=?", String.class, docent.getId())).isEqualTo("test");
+    }
+
+    @Test
+    void campusLazyLoaded(){
+        Docent docent = repository.findById(idVanTestMan()).get();
+        assertThat(docent.getCampus().getNaam()).isEqualTo("test");
     }
 }

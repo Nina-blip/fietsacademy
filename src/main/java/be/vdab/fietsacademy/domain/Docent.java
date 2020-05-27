@@ -24,16 +24,21 @@ public class Docent {
     @Column(name = "bijnaam")
     private Set<String> bijnamen;
 
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "campusid")
+    private Campus campus;
+
     protected Docent() {
     }
 
-    public Docent(String voornaam, String familienaam, BigDecimal wedde, String emailAdres, Geslacht geslacht) {
+    public Docent(String voornaam, String familienaam, BigDecimal wedde, String emailAdres, Geslacht geslacht, Campus campus) {
         this.voornaam = voornaam;
         this.familienaam = familienaam;
         this.wedde = wedde;
         this.emailAdres = emailAdres;
         this.geslacht = geslacht;
         this.bijnamen = new LinkedHashSet<>();
+        setCampus(campus);
     }
 
     public long getId() {
@@ -105,5 +110,13 @@ public class Docent {
 
     public boolean removeBijnaam(String bijnaam){
         return bijnamen.remove(bijnaam);
+    }
+
+    public Campus getCampus() {
+        return campus;
+    }
+
+    public void setCampus(Campus campus) {
+        this.campus = campus;
     }
 }
