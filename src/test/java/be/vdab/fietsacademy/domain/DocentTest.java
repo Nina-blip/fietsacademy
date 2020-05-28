@@ -16,6 +16,7 @@ class DocentTest {
     private Docent docent2;
     private Docent nogEensDocent1;
     private Campus campus2;
+    private Verantwoordelijkheid verantwoordelijkheid1;
 
     @BeforeEach
     void beforeEach() {
@@ -24,6 +25,7 @@ class DocentTest {
         docent2 = new Docent("test2", "test2", WEDDE, "test2@test.be", Geslacht.MAN, campus1);
         nogEensDocent1 = new Docent("test", "test", WEDDE, "test@test.be", Geslacht.MAN, campus1);
         campus2 = new Campus("test2", new Adres("test2", "test2", "test2", "test2"));
+        verantwoordelijkheid1 = new Verantwoordelijkheid("EHBO");
     }
 
     @Test
@@ -125,13 +127,13 @@ class DocentTest {
     }
 
     @Test
-    void docent1KomtVoorInCampus1(){
+    void docent1KomtVoorInCampus1() {
         assertThat(docent1.getCampus()).isEqualTo(campus1);
         assertThat(campus1.getDocenten()).contains(docent1);
     }
 
     @Test
-    void docent1VerhuistNaarCampus2(){
+    void docent1VerhuistNaarCampus2() {
         docent1.setCampus(campus2);
         assertThat(docent1.getCampus()).isEqualTo(campus2);
         assertThat(campus1.getDocenten()).containsOnly(docent2);
@@ -139,7 +141,23 @@ class DocentTest {
     }
 
     @Test
-    void JeKanGeenNullToevoegenAlsCampus(){
-        assertThatNullPointerException().isThrownBy(()->docent1.setCampus(null));
+    void JeKanGeenNullToevoegenAlsCampus() {
+        assertThatNullPointerException().isThrownBy(() -> docent1.setCampus(null));
+    }
+
+    @Test
+    void verantwoordelijkheidToevoegen(){
+        assertThat(docent1.add(verantwoordelijkheid1)).isTrue();
+        assertThat(docent1.getVerantwoordelijkheden()).containsOnly(verantwoordelijkheid1);
+        assertThat(verantwoordelijkheid1.getDocenten()).containsOnly(docent1);
+    }
+
+    @Test
+    void verantwoordelijkheidVerwijderen(){
+        assertThat(docent1.add(verantwoordelijkheid1)).isTrue();
+        assertThat(docent1.remove(verantwoordelijkheid1)).isTrue();
+        assertThat(docent1.getVerantwoordelijkheden()).isEmpty();
+        assertThat(verantwoordelijkheid1.getDocenten()).isEmpty();
+
     }
 }
