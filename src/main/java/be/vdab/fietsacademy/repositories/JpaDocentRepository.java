@@ -6,6 +6,7 @@ import be.vdab.fietsacademy.queryresults.IdEnEmailAdres;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
 import javax.swing.text.html.Option;
 import java.math.BigDecimal;
 import java.util.List;
@@ -71,5 +72,10 @@ public class JpaDocentRepository implements DocentRepository {
     public int algemeneOpslag(BigDecimal percentage) {
         BigDecimal factor = BigDecimal.ONE.add(percentage.divide(BigDecimal.valueOf(100)));
         return manager.createNamedQuery("Docent.algemeneOpslag").setParameter("factor", factor).executeUpdate();
+    }
+
+    @Override
+    public Optional<Docent> findByIdWithLock(long id) {
+        return Optional.ofNullable(manager.find(Docent.class, id, LockModeType.PESSIMISTIC_WRITE));
     }
 }
